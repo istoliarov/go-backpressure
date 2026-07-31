@@ -50,6 +50,24 @@ downstream becomes healthy again.
 Local rejection is cheaper than a network timeout. A controlled fallback is
 better than a cascading outage.
 
+## How It Compares
+
+`go-backpressure` is not a replacement for every resilience primitive. It is a
+small client-side controller for the partial-degradation zone where a downstream
+is unhealthy enough to protect, but not always broken enough to turn off.
+
+| Primitive | Main question | Typical decision | Best for | Tradeoff |
+|---|---|---|---|---|
+| Rate limiter | "How many requests per second are allowed?" | Allow, wait, or reject based on a fixed or externally configured budget | Known capacity limits, public API quotas, tenant fairness | Does not learn from downstream health by itself |
+| Circuit breaker | "Is this dependency currently usable?" | Closed, open, or half-open | Hard failures, fast failover, stopping calls to a clearly broken dependency | Often too binary for partial degradation |
+| Adaptive throttling | "Are attempts outpacing successful responses?" | Reject a calculated percentage locally | Gradual overload, retry storms, protecting recovering dependencies | Needs meaningful success/failure classification |
+| `go-backpressure` | "What percentage of this operation is safe to try right now?" | Allow or locally reject based on caller-classified outcomes | Redis, HTTP, RPC, database, queue, and custom client operations | Consumers own fallback behavior and observability adapters |
+
+These tools can be combined. For example, a service might use a rate limiter for
+tenant quotas, a circuit breaker for a fully unavailable dependency, and
+`go-backpressure` to shed part of the load while the dependency is slow,
+overloaded, or recovering.
+
 ## What Problem It Solves
 
 `go-backpressure` protects any client-side operation:
