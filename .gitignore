@@ -1,0 +1,23 @@
+# Go build/test artifacts
+*.test
+*.prof
+*.out
+coverage
+coverage.*
+coverage.out
+
+# Local Go cache used by sandboxed/local runs
+.gocache/
+
+# Build outputs
+bin/
+dist/
+build/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.tmp
