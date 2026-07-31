@@ -83,6 +83,25 @@ go get github.com/istoliarov/go-backpressure
 
 Requires Go 1.22 or newer.
 
+Documentation is published on pkg.go.dev after the Go module proxy has seen the
+tagged version:
+
+```text
+https://pkg.go.dev/github.com/istoliarov/go-backpressure@v0.1.1
+```
+
+If the page is not visible immediately after a release, request the version once:
+
+```bash
+GOPROXY=https://proxy.golang.org go list -m github.com/istoliarov/go-backpressure@v0.1.1
+```
+
+pkg.go.dev indexes modules from proxy.golang.org and normally adds new versions
+within a few minutes. See the official
+[pkg.go.dev package adding docs](https://pkg.go.dev/about#adding-a-package) for
+the details. The badge in this README is a documentation link, not a separate
+package registry.
+
 ## Quick Start
 
 ```go
@@ -194,6 +213,26 @@ elif response.status >= 400:
 else:
     decision.report(success)
 ```
+
+## Integration Examples
+
+The core package is intentionally protocol agnostic. Examples use small local
+interfaces and fake clients so they compile without pulling in Redis, gRPC,
+database drivers, queue SDKs, metrics clients, or tracing libraries.
+
+| Scenario | Example | What it demonstrates |
+|---|---|---|
+| Cache read | [`examples/cache`](examples/cache) | Cache miss as `Neutral`, key-based sampling, fallback with `Do` |
+| Generic operation | [`examples/generic_operation`](examples/generic_operation) | Minimal manual `Acquire`/`Report` flow |
+| gRPC-style RPC | [`examples/grpc_style`](examples/grpc_style) | Mapping RPC status-like codes to `Success`, `Failure`, `Neutral`, `Overload` |
+| Database read | [`examples/database`](examples/database) | Treating no rows and retryable business errors differently from overload |
+| Queue publish | [`examples/queue`](examples/queue) | Local buffering on reject and overload classification for a full broker |
+| HTTP client | [`httpbp`](httpbp) | Optional `http.RoundTripper` adapter for HTTP status classification |
+
+The examples are integration patterns rather than blessed adapters. In real
+services, keep the classification function close to the dependency owner: that
+team knows whether a 404, cache miss, duplicate message, retryable transaction,
+or resource-exhausted response should affect backpressure.
 
 ### RPC Call
 
@@ -361,10 +400,16 @@ Run locally:
 go test -run=^$ -bench=. -benchmem ./...
 ```
 
-Exact numbers depend on hardware and Go version. The important property is the
-shape: local allow/reject/report decisions are measured in hundreds of
-nanoseconds, while avoided downstream timeouts are normally configured in
-milliseconds or seconds.
+Exact numbers depend on hardware, operating system, CPU power mode, Go version,
+compiler behavior, and background load. Treat the table above as an illustrative
+snapshot, not a contractual performance guarantee. CI also runs the benchmark
+suite on Ubuntu so obvious performance regressions are visible in job logs, but
+GitHub-hosted runners are shared machines and are not suitable for precise
+microbenchmark claims.
+
+The important property is the shape: local allow/reject/report decisions are
+measured in hundreds of nanoseconds, while avoided downstream timeouts are
+normally configured in milliseconds or seconds.
 
 For example, even a 10 ms timeout is roughly **50,000x** slower than a 200 ns
 local decision. Backpressure does not make downstream calls faster; it helps you
