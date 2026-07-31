@@ -81,26 +81,23 @@ That design matters because `err != nil` is not always infrastructure failure:
 go get github.com/istoliarov/go-backpressure
 ```
 
-Requires Go 1.22 or newer.
-
-Documentation is published on pkg.go.dev after the Go module proxy has seen the
-tagged version:
-
-```text
-https://pkg.go.dev/github.com/istoliarov/go-backpressure@v0.1.1
-```
-
-If the page is not visible immediately after a release, request the version once:
+Or pin a specific release:
 
 ```bash
-GOPROXY=https://proxy.golang.org go list -m github.com/istoliarov/go-backpressure@v0.1.1
+go get github.com/istoliarov/go-backpressure@v0.1.1
 ```
 
-pkg.go.dev indexes modules from proxy.golang.org and normally adds new versions
-within a few minutes. See the official
-[pkg.go.dev package adding docs](https://pkg.go.dev/about#adding-a-package) for
-the details. The badge in this README is a documentation link, not a separate
-package registry.
+Requires Go 1.22 or newer.
+
+## Documentation
+
+API documentation is available on pkg.go.dev:
+
+[https://pkg.go.dev/github.com/istoliarov/go-backpressure](https://pkg.go.dev/github.com/istoliarov/go-backpressure)
+
+Go modules are published through Git tags and the module proxy. pkg.go.dev is
+the official documentation index for those modules, not a separate package
+registry.
 
 ## Quick Start
 
