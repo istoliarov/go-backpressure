@@ -619,6 +619,13 @@ func TestPressureStrategyTable(t *testing.T) {
 		{
 			name: "decay lowers pressure over time",
 			run: func(bp *Controller) {
+				cfg := DefaultConfig()
+				cfg.Strategy = StrategyPressure
+				cfg.MinSamples = 1
+				cfg.PressureLimit = 1_000
+				cfg.ErrorIncrease = 100
+				cfg.DecayPerSecond = 1_000
+				bp.UpdateConfig(cfg)
 				bp.Report(Failure(errors.New("timeout")))
 				time.Sleep(20 * time.Millisecond)
 			},
@@ -640,7 +647,7 @@ func TestPressureStrategyTable(t *testing.T) {
 			cfg.ErrorIncrease = 100
 			cfg.OverloadIncrease = 300
 			cfg.SuccessDecrease = 10
-			cfg.DecayPerSecond = 1_000
+			cfg.DecayPerSecond = 0
 			bp := New("test", cfg)
 			tt.run(bp)
 			tt.want(t, bp.Snapshot())
